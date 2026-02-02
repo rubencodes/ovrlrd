@@ -5,6 +5,9 @@ options:
   deploymentTarget:
     iOS: "26.0"
   xcodeVersion: "16.0"
+  fileTypes:
+    "icon":
+      file: true
 
 packages:
   MarkdownUI:
@@ -36,6 +39,8 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: $(DEVELOPMENT_TEAM)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      resources:
+      - Ovrlrd/App/Assets.xcassets
     entitlements:
       path: Ovrlrd/App/Ovrlrd.entitlements
       properties:

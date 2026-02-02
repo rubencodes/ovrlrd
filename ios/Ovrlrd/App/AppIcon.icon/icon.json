@@ -9,7 +9,14 @@
           "blend-mode" : "normal",
           "fill" : "none",
           "image-name" : "Foreground.svg",
-          "name" : "Foreground"
+          "name" : "Foreground",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
         }
       ],
       "shadow" : {
