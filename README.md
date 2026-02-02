@@ -29,8 +29,8 @@ Ovrlrd bridges that gap. It's not a simplified mobile chatbot—it's a direct li
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐                    ┌─────────────────┐
-│   iOS Client      │ ◄───────────────►│  Local Server    │ ◄───────────────► │   Claude CLI      │
-│   (SwiftUI)       │       HTTP/S       │   (Bun/Hono)     │     subprocess     │   (session-id)    │
+│   iOS Client    │  ◄───────────────► │  Local Server   │ ◄───────────────►  │   Claude CLI    │
+│   (SwiftUI)     │       HTTP/S       │   (Bun/Hono)    │     subprocess     │   (session-id)  │
 └─────────────────┘                    └─────────────────┘                    └─────────────────┘
 ```
 
