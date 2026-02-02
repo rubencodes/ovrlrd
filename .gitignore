@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Database
+*.db
+*.db-wal
+*.db-shm
+*.db.backup-*
+
+# Logs
+*.log
+
+# Environment
+.env
+*.p8
+
+# Build
+dist/
+build/
+
+# IDE
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# iOS
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/DerivedData/
+ios/.build/
+ios/Config/Local.xcconfig
+
+# Bun
+bun.lockb
+
+# ngrok
+*.ngrok.io
+/ios/.agents
+/ios/.claude

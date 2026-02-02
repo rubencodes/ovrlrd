@@ -1,0 +1,4 @@
+// Copy this file to Local.xcconfig and fill in your values.
+// Local.xcconfig is gitignored.
+
+DEVELOPMENT_TEAM = YOUR_TEAM_ID_HERE
