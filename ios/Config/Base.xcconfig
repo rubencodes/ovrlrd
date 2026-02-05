@@ -1,0 +1,6 @@
+// Base configuration - committed to git
+// Values here can be overridden by Local.xcconfig or CI environment variables
+
+// Development team for code signing
+// In CI, this is set via environment variable
+DEVELOPMENT_TEAM = $(DEVELOPMENT_TEAM)
