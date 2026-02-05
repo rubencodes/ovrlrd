@@ -53,6 +53,23 @@ function writeSSEEvent(stream: SSEStream, type: string, data: Record<string, unk
   stream.writeSSE({ data: JSON.stringify({ type, ...data }) });
 }
 
+/**
+ * Deduplicate permission denials by tool_name + tool_input.
+ * Claude sometimes retries the same tool call multiple times when denied,
+ * resulting in duplicate entries with different tool_use_ids.
+ */
+function deduplicatePermissionDenials(denials: PermissionDenial[]): PermissionDenial[] {
+  const seen = new Set<string>();
+  return denials.filter((denial) => {
+    const key = `${denial.tool_name}:${JSON.stringify(denial.tool_input)}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 // =============================================================================
 // Non-Streaming Message Handler
 // =============================================================================
@@ -114,13 +131,20 @@ function createStreamingCallbacks(
     },
 
     onComplete: (result: string, sessionId: string | null, permissionDenials?: PermissionDenial[]) => {
-      state.result = { sessionId, permissionDenials };
+      // Deduplicate permission denials - Claude sometimes retries the same tool call
+      // multiple times when denied, resulting in duplicate entries with different tool_use_ids
+      const deduplicatedDenials = permissionDenials
+        ? deduplicatePermissionDenials(permissionDenials)
+        : undefined;
+
+      state.result = { sessionId, permissionDenials: deduplicatedDenials };
 
       // Send terminal event immediately to ensure client receives it before connection closes
-      if (permissionDenials && permissionDenials.length > 0) {
+      if (deduplicatedDenials && deduplicatedDenials.length > 0) {
+        logInfo('chat', `Permission required for ${deduplicatedDenials.length} tool(s)`);
         writeSSEEvent(stream, 'permission_required', {
           conversationId: conversation.id,
-          denials: permissionDenials,
+          denials: deduplicatedDenials,
         });
       } else if (state.currentSegment.trim() || state.segments.length > 0) {
         writeSSEEvent(stream, 'complete', { conversationId: conversation.id });
