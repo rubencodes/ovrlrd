@@ -11,88 +11,82 @@ struct PermissionApprovalSheet: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                // Icon
-                Image(systemName: "lock.shield")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.orange)
-                    .padding(.top, 8)
+        List {
+            Section {
+                ForEach(request.denials) { denial in
+                    HStack(spacing: 12) {
+                        Image(systemName: ToolMetadata.icon(for: denial.toolName))
+                            .foregroundStyle(.blue)
+                            .frame(width: 24)
 
-                // Title
-                Text("Permission Required")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-
-                // Description
-                Text("Claude wants to perform the following action\(request.denials.count > 1 ? "s" : ""):")
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-
-                // List of requested permissions
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(request.denials) { denial in
-                        HStack(spacing: 12) {
-                            Image(systemName: ToolMetadata.icon(for: denial.toolName))
-                                .foregroundStyle(.blue)
-                                .frame(width: 24)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(denial.toolName)
-                                    .font(.headline)
-                                Text(denial.description)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                            }
-
-                            Spacer()
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(denial.toolName)
+                                .font(.headline)
+                            Text(denial.description)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
                         }
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                        Spacer()
+                    }
+                    .listRowBackground(Color(.secondarySystemBackground))
+                    .listRowSpacing(.zero)
+                }
+            } header: {
+                VStack(spacing: 20) {
+                    // Icon
+                    Image(systemName: "lock.shield")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.orange)
+
+                    // Title
+                    VStack(spacing: 12) {
+                        Text("Permission Required")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+
+                        // Description
+                        Text("Claude wants to perform the following action\(request.denials.count > 1 ? "s" : ""):")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                     }
                 }
-                .padding(.horizontal)
-
-                Spacer()
-
-                // Buttons
-                VStack(spacing: 12) {
-                    Button(action: onApprove) {
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity)
+                .listRowInsets(.init(top: 20, leading: 16, bottom: 16, trailing: 16))
+                .listRowBackground(Color.clear)
+            } footer: {
+                VStack(spacing: 4) {
+                    Button(role: .confirm, action: onApprove) {
                         Text("Allow")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.blue)
                             .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(.capsule)
                     }
                     .accessibilityLabel("Allow")
                     .accessibilityHint("Grants Claude permission to perform the requested actions")
 
-                    Button(action: onDeny) {
+                    Button(role: .cancel, action: onDeny) {
                         Text("Deny")
                             .font(.headline)
-                            .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .foregroundStyle(.primary)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .accessibilityLabel("Deny")
                     .accessibilityHint("Denies Claude permission to perform the requested actions")
                 }
                 .padding(.horizontal)
-                .padding(.bottom)
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", action: onDeny)
-                }
+                .frame(maxWidth: .infinity)
+                .listRowInsets(.init(top: 16, leading: 16, bottom: 0, trailing: 16))
+                .listRowBackground(Color.clear)
             }
         }
+        .listStyle(.inset)
+        .scrollIndicators(.hidden)
     }
 
 }
@@ -100,42 +94,59 @@ struct PermissionApprovalSheet: View {
 // MARK: - Previews
 
 #Preview("Single Permission") {
-    PermissionApprovalSheet(
-        request: ChatViewModel.PendingPermissionRequest(
-            conversationId: "test",
-            originalMessage: "Create a file",
-            denials: [
-                PermissionDenial(
-                    toolName: "Write",
-                    toolUseId: "test-1",
-                    toolInput: ["file_path": AnyCodable("/tmp/test.txt"), "content": AnyCodable("hello")]
-                )
-            ]
-        ),
-        onApprove: {},
-        onDeny: {}
-    )
+    Color.clear
+        .sheet(isPresented: .constant(true)) {
+            PermissionApprovalSheet(
+                request: ChatViewModel.PendingPermissionRequest(
+                    conversationId: "test",
+                    originalMessage: "Create a file",
+                    denials: [
+                        PermissionDenial(
+                            toolName: "Write",
+                            toolUseId: "test-1",
+                            toolInput: [
+                                "file_path": AnyCodable("/tmp/test.txt"),
+                                "content": AnyCodable("hello")
+                            ]
+                        )
+                    ]
+                ),
+                onApprove: {},
+                onDeny: {}
+            )
+            .presentationDetents([.medium])
+            .presentationSizing(.page.fitted(horizontal: false, vertical: true))
+        }
 }
 
 #Preview("Multiple Permissions") {
-    PermissionApprovalSheet(
-        request: ChatViewModel.PendingPermissionRequest(
-            conversationId: "test",
-            originalMessage: "Run setup script",
-            denials: [
-                PermissionDenial(
-                    toolName: "Bash",
-                    toolUseId: "test-1",
-                    toolInput: ["command": AnyCodable("npm install")]
+    Color.clear
+        .sheet(isPresented: .constant(true)) {
+            PermissionApprovalSheet(
+                request: ChatViewModel.PendingPermissionRequest(
+                    conversationId: "test",
+                    originalMessage: "Run setup script",
+                    denials: [
+                        PermissionDenial(
+                            toolName: "Bash",
+                            toolUseId: "test-1",
+                            toolInput: ["command": AnyCodable("npm install")]
+                        ),
+                        PermissionDenial(
+                            toolName: "Write",
+                            toolUseId: "test-2",
+                            toolInput: ["file_path": AnyCodable("/project/config.json")]
+                        ),
+                        PermissionDenial(
+                            toolName: "Write",
+                            toolUseId: "test-3",
+                            toolInput: ["file_path": AnyCodable("/project/config.json")]
+                        ),
+                    ]
                 ),
-                PermissionDenial(
-                    toolName: "Write",
-                    toolUseId: "test-2",
-                    toolInput: ["file_path": AnyCodable("/project/config.json")]
-                )
-            ]
-        ),
-        onApprove: {},
-        onDeny: {}
-    )
+                onApprove: {},
+                onDeny: {}
+        )
+        .presentationDetents([.medium])
+    }
 }
